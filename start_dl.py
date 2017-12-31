@@ -8,7 +8,6 @@ PARAMS_PATH = ".\\params.json"
 PIN = ""
 
 LANG = 1 if locale.getdefaultlocale()[0] == "zh_CN" else 0
-LANG = 0
 STRING = {
     "photo":[
         "photo",

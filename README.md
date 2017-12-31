@@ -18,7 +18,7 @@ Packaged executable files with Out-of-Box experience can be found in release tag
 #### 1. Get params (ADB Required)
 Run ```python get_params.py``` in terminal
 
-![get_params](/screenshots/params.jpg)
+<img src="/screenshots/params.jpg" alt="get_params" align="center" />
 
 Generate ```params.json``` like
 ```
@@ -37,7 +37,7 @@ If want to use proxy, add a line like
 #### 2. Get download queue (ADB Required)
 Run ```python get_dl_queue.py``` in terminal
 
-![get_dl_queue](/screenshots/queue.jpg)
+<img src="/screenshots/queue.jpg" alt="get_dl_queue" align="center" />
 
 Pull sqlite3 file ```main.db``` from device to working directory  
 Generate ```download.json``` like
@@ -57,11 +57,11 @@ Generate ```download.json``` like
 #### 3. Start download
 Run ```python start_dl.py``` in terminal
 
-![start_dl](/screenshots/dl.jpg)
+<img src="/screenshots/dl.jpg" alt="start_dl" align="center" />
 
 All media files are downloaded to ```./resource``` directory
 
-![resource](/screenshots/resource.jpg)
+<img src="/screenshots/resource.jpg" alt="resource" align="center" />
 
 Enjoy yourself
 
