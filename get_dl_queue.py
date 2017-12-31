@@ -3,29 +3,33 @@ import sqlite3
 import re, json
 import os, sys
 
-adb_dir = ".\\platform-tools\\" if os.path.exists("platform-tools") else ""
+work_dir = os.path.dirname(__file__)
+adb_dir = os.path.join(work_dir,"platform-tools") if os.path.exists("platform-tools") else ""
+adb = os.path.join(adb_dir,"adb") + " "
+db_path = os.path.join(work_dir,"main.db")
+queue_path = os.path.join(work_dir,"download.json")
 
-connect = os.popen(adb_dir + "adb devices").read()
+connect = os.popen(adb + "devices").read()
 if re.search(r"device\s+$",connect) == None:
     print "can't connect to device"
-    os.system(adb_dir + "adb kill-server")
+    os.system(adb + "kill-server")
     sys.stdin.read()
     exit()
 else:
     print "connect"
 
 commands = [
-    'adb shell "su -c cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db"',
-    'adb pull /sdcard/keyakimsg.db ./main.db',
-    'adb shell "su -c rm /sdcard/keyakimsg.db "',
-    'adb kill-server'
+    'shell "su -c cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db"',
+    'pull /sdcard/keyakimsg.db {}'.format(db_path),
+    'shell "su -c rm /sdcard/keyakimsg.db "',
+    'kill-server'
 ]
 
 for command in commands:
     os.popen(adb_dir + command).read()
 
 try:
-    connect = sqlite3.connect(".\\main.db")
+    connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
 except:
     print "open database with something wrong"
@@ -33,7 +37,7 @@ except:
     exit()
 
 try:
-    f = open(".\\download.json","r")
+    f = open(queue_path,"r")
     old = f.read()
     f.close()
     old = json.loads(old)
@@ -77,7 +81,7 @@ for i in range(0,len(db)):
 
     new.append(resource)
 
-f = open(".\\download.json","w")
+f = open(queue_path,"w")
 f.write(json.dumps(new,indent = 4))
 f.close()
 

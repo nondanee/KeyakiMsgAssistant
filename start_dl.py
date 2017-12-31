@@ -2,13 +2,14 @@
 import re, json, urllib2
 import os, sys, locale 
 
-RESOURCE_PATH = ".\\resource"
-DOWNLOAD_QUEUE_PATH = ".\\download.json"
-PARAMS_PATH = ".\\params.json"
-PIN = ""
+work_dir = os.path.dirname(__file__)
+resource_path = os.path.join(work_dir,"resource")
+queue_path = os.path.join(work_dir,"download.json")
+params_path = os.path.join(work_dir,"params.json")
+pin = ""
 
-LANG = 1 if locale.getdefaultlocale()[0] == "zh_CN" else 0
-STRING = {
+lang = 1 if locale.getdefaultlocale()[0] == "zh_CN" else 0
+strings = {
     "photo":[
         "photo",
         "图片"
@@ -71,7 +72,7 @@ STRING = {
     ]
 }
 def get_string(key):
-    return STRING[key][LANG]
+    return strings[key][lang]
 
 
 def printf(string,flush=False):
@@ -86,28 +87,28 @@ def quit(string=None):
     sys.stdin.read()
     exit()
 
-def pin(i,amount,media_type):
-    global PIN
-    PIN = str(i+1).zfill(len(str(amount))) + "/" + str(amount) + "  " + get_string(media_type) + "  " 
+def pin_info(i,amount,media_type):
+    global pin
+    pin = str(i+1).zfill(len(str(amount))) + "/" + str(amount) + "  " + get_string(media_type) + "  " 
 
 def show_status(process,data=None):
     status = get_string(process)
     if data != None: status = status%(data)
     printf(format("","<40"),True)
-    printf(PIN + status,True)
+    printf(pin + status,True)
 
-def get_resource_url(talkId):
+def get_resource_url(talk_id):
     url = "https://client-k.hot.sonydna.com/article"
     data = {
-        "article":talkId,
-        "username":USERNAME,
-        "token":TOKEN
+        "article":talk_id,
+        "username":username,
+        "token":token
     }
     headers = {
-        "User-Agent":USER_AGENT,
+        "User-Agent":user_agent,
         "Content-Type":"application/json",
         "Accept":"application/json",
-        "X-API-Version":API_VERSION
+        "X-API-Version":api_version
     }
     request = urllib2.Request(url = url,headers = headers,data = json.dumps(data))
     show_status("request_resource")
@@ -125,7 +126,7 @@ def get_resource_url(talkId):
             show_status("retry",retry)
 
 def download_resource(url):
-    request = urllib2.Request(url = url,headers = {"User-Agent":USER_AGENT})
+    request = urllib2.Request(url = url,headers = {"User-Agent":user_agent})
     show_status("start_download")
     retry = 0
     while True:
@@ -157,7 +158,7 @@ def show_progress(response):
     return data
 
 def update_download_queue_file(download_queue):
-    f = open(DOWNLOAD_QUEUE_PATH,"w")
+    f = open(queue_path,"w")
     f.write(json.dumps(download_queue,indent = 4))
     f.close()
 
@@ -172,23 +173,23 @@ def check_queue_format(download_queue):
 
 
 try:
-    f = open(PARAMS_PATH,"r")
+    f = open(params_path,"r")
     params = f.read()
     params = json.loads(params)
     f.close()
 except:
     quit(get_string("read_file_error")%"params.json")
 
-if "account_id" in params: USERNAME = params["account_id"]
+if "account_id" in params: username = params["account_id"]
 else: quit(get_string("lack_param_error")%"account_id")
 
-if "auth_token" in params: TOKEN = params["auth_token"]
+if "auth_token" in params: token = params["auth_token"]
 else: quit(get_string("lack_param_error")%"auth_token")
 
-if "user_agent" in params: USER_AGENT = params["user_agent"]
+if "user_agent" in params: user_agent = params["user_agent"]
 else: quit(get_string("lack_param_error")%"user_agent")
 
-if "api_version" in params: API_VERSION = params["api_version"]
+if "api_version" in params: api_version = params["api_version"]
 else: quit(get_string("lack_param_error")%"api_version")
 
 if "proxy" in params:
@@ -197,7 +198,7 @@ if "proxy" in params:
     urllib2.install_opener(opener)
     
 try:
-    f = open(DOWNLOAD_QUEUE_PATH,"r")
+    f = open(queue_path,"r")
     download_queue = f.read()
     download_queue = json.loads(download_queue)
     f.close()
@@ -206,18 +207,18 @@ except:
 
 check_queue_format(download_queue)
 
-if os.path.exists(RESOURCE_PATH) == False: os.mkdir(RESOURCE_PATH)
+if os.path.exists(resource_path) == False: os.mkdir(resource_path)
 
 amount = len(download_queue)
 
 for i in range(0,amount):
     if download_queue[i]["status"] != 0: continue
 
-    pin(i,amount,download_queue[i]["media_type"])
+    pin_info(i,amount,download_queue[i]["media_type"])
     resource_url = get_resource_url(download_queue[i]["talk_id"])
     if resource_url != None:
         file_name = re.search(r'^\S+/(\S+?)\?\S+$',resource_url).group(1)
-        file_path = RESOURCE_PATH + "\\" + file_name
+        file_path = os.path.join(resource_path,file_name)
         if os.path.exists(file_path) == 1:
             show_status("file_exist")
             download_queue[i]["status"] = 1

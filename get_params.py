@@ -4,26 +4,30 @@ import xml.dom.minidom, base64
 from Crypto.Cipher import AES
 import re, json
 
-adb_dir = ".\\platform-tools\\" if os.path.exists("platform-tools") else ""
 
-connect = os.popen(adb_dir + "adb devices").read()
+work_dir = os.path.dirname(__file__)
+adb_dir = os.path.join(work_dir,"platform-tools") if os.path.exists("platform-tools") else ""
+adb = os.path.join(adb_dir,"adb") + " "
+params_path = os.path.join(work_dir,"params.json")
+
+connect = os.popen(adb + "devices").read()
 if re.search(r"device\s+$",connect) == None:
     print "can't connect to device"
-    os.system(adb_dir + "adb kill-server")
+    os.system(adb + "kill-server")
     sys.stdin.read()
     exit()
 else:
     print "connect"
 
-file_00 = os.popen(adb_dir + 'adb shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_00"').read()
-file_01 = os.popen(adb_dir + 'adb shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_01"').read()
-hot_preference = os.popen(adb_dir + 'adb shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/shared_prefs/hot_preference.xml"').read()
+file_00 = os.popen(adb + 'shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_00"').read()
+file_01 = os.popen(adb + 'shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_01"').read()
+hot_preference = os.popen(adb + 'shell "su -c cat /data/data/jp.co.sonymusic.communication.keyakizaka/shared_prefs/hot_preference.xml"').read()
 
-product_model = os.popen(adb_dir + "adb shell getprop ro.product.model").read()
+product_model = os.popen(adb + "shell getprop ro.product.model").read()
 product_model = re.sub(r"[\r\n]","",product_model)
-build_version = os.popen(adb_dir + "adb shell getprop ro.build.version.release").read()
+build_version = os.popen(adb + "shell getprop ro.build.version.release").read()
 build_version = re.sub(r"[\r\n]","",build_version)
-build_id = os.popen(adb_dir + "adb shell getprop ro.build.id").read()
+build_id = os.popen(adb + "shell getprop ro.build.id").read()
 build_id = re.sub(r"[\r\n]","",build_id)
 
 user_agent = "Dalvik/2.1.0 (Linux; U; Android {build_version}; {product_model} Build/{build_id})".format(
@@ -76,7 +80,7 @@ print "account-id {}".format(account_id)
 print "auth-token {}".format(auth_token)
 print "user-agent {}".format(user_agent)
 
-with open("params.json","w") as file:  
+with open(params_path,"w") as file:  
     data = file.write(
         json.dumps({
             "account_id": account_id,
@@ -87,5 +91,5 @@ with open("params.json","w") as file:
     )
 
 print "success"
-os.system(adb_dir + "adb kill-server")
+os.system(adb + "kill-server")
 sys.stdin.read()
