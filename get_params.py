@@ -9,7 +9,8 @@ if getattr(sys, 'frozen', False):
 else:
     work_dir = os.path.dirname(__file__)
 
-adb_dir = os.path.join(work_dir,"platform-tools") if os.path.exists("platform-tools") else ""
+adb_dir = os.path.join(work_dir,"platform-tools") 
+adb_dir = adb_dir if os.path.exists(adb_dir) else ""
 adb = os.path.join(adb_dir,"adb") + " "
 params_path = os.path.join(work_dir,"params.json")
 
