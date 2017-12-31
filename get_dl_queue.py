@@ -3,7 +3,11 @@ import sqlite3
 import re, json
 import os, sys
 
-work_dir = os.path.dirname(__file__)
+if getattr(sys, 'frozen', False):
+    work_dir = os.path.dirname(sys.executable)
+else:
+    work_dir = os.path.dirname(__file__)
+
 adb_dir = os.path.join(work_dir,"platform-tools") if os.path.exists("platform-tools") else ""
 adb = os.path.join(adb_dir,"adb") + " "
 db_path = os.path.join(work_dir,"main.db")

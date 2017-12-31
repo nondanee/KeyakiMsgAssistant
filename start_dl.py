@@ -2,7 +2,11 @@
 import re, json, urllib2
 import os, sys, locale 
 
-work_dir = os.path.dirname(__file__)
+if getattr(sys, 'frozen', False):
+    work_dir = os.path.dirname(sys.executable)
+else:
+    work_dir = os.path.dirname(__file__)
+
 resource_path = os.path.join(work_dir,"resource")
 queue_path = os.path.join(work_dir,"download.json")
 params_path = os.path.join(work_dir,"params.json")

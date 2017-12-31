@@ -4,8 +4,11 @@ import xml.dom.minidom, base64
 from Crypto.Cipher import AES
 import re, json
 
+if getattr(sys, 'frozen', False):
+    work_dir = os.path.dirname(sys.executable)
+else:
+    work_dir = os.path.dirname(__file__)
 
-work_dir = os.path.dirname(__file__)
 adb_dir = os.path.join(work_dir,"platform-tools") if os.path.exists("platform-tools") else ""
 adb = os.path.join(adb_dir,"adb") + " "
 params_path = os.path.join(work_dir,"params.json")
