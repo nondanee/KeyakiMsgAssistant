@@ -30,7 +30,7 @@ commands = [
 ]
 
 for command in commands:
-    os.popen(adb_dir + command).read()
+    os.popen(adb + command).read()
 
 try:
     connect = sqlite3.connect(db_path)
