@@ -9,13 +9,14 @@ Packaged executable files with Out-of-Box experience can be found in release tag
 - [ ] ADB tool
 - [ ] Python environment
 
-## Feature
-- Decrypting data to get request params
+## Description
+- Pull needed files from device
+- Decrypt data to get access token
 - Forge requests for resource urls 
-- Download queue supports breakpoint record and incremental update
+- Download media files to local 
 
 ## Usage
-#### 1. Get params (ADB Required)
+#### 1. Get parameters (ADB Required)
 Run ```python get_params.py``` in terminal
 
 <img src="/screenshots/params.jpg" alt="get_params" align="center" />
@@ -29,9 +30,9 @@ Generate ```params.json``` like
     "user_agent": "Dalvik/2.1.0 (Linux; U; Android ?????; ????? Build/??????)",
 }
 ```
-If want to use proxy, add a line like
+If you want to use proxy, add a line like
 ```
-	"proxy": "http://127.0.0.1:1080"
+    "proxy": "http://127.0.0.1:1080",
 ```
 
 #### 2. Get download queue (ADB Required)
@@ -52,6 +53,8 @@ Generate ```download.json``` like
     ......
 ]
 ```
+as download queue which supports progress reserved and incremental update
+
 ```"status": 1``` means media file has already downloaded
 
 #### 3. Start download
