@@ -10,8 +10,8 @@ Packaged executable files with Out-of-Box experience can be found in release tag
 - [ ] ADB tool
 - [ ] Python environment
 
-## Description
-- Pull needed files from device
+## Principle
+- Pull profile files from device
 - Decrypt data to get access token
 - Forge requests for resource urls 
 - Download media files to local 
