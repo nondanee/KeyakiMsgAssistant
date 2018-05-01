@@ -2,6 +2,7 @@
 
 # KeyakiMsgAssistant
 CLI tool for extracting resources from "欅坂46メッセー" app  
+Compatible with both Python 2 and Python 3  
 Packaged executable files with Out-of-Box experience can be found in release tag
 
 ## Requirement
@@ -44,7 +45,7 @@ Pull sqlite3 file ```main.db``` from device to working directory
 Generate ```download.json``` like
 ```
 [
-	......
+    ......
     {
         "status": 0, 
         "media_type": "photo", 

@@ -1,180 +1,129 @@
 # -*- coding: utf-8 -*-
-import re, json, urllib2
-import os, sys, locale 
+import time, re, json
+import os, sys, locale, platform
+import requests
 
-if getattr(sys, 'frozen', False):
+try:
+    reload(sys)
+    sys.setdefaultencoding("utf8")
+except:
+    pass
+
+if platform.system() == "Windows":
+    if platform.version() >= "10.0.14393":
+        os.system("")
+    else:
+        import colorama
+        colorama.init()
+
+if getattr(sys, "frozen", False):
     work_dir = os.path.dirname(sys.executable)
 else:
     work_dir = os.path.dirname(__file__)
+
+# is_python2 = sys.version[0] == "2"
+# system_encodeing = sys.stdin.encoding or locale.getpreferredencoding(True)
 
 resource_path = os.path.join(work_dir,"resource")
 queue_path = os.path.join(work_dir,"download.json")
 params_path = os.path.join(work_dir,"params.json")
 pin = ""
 
-lang = 1 if locale.getdefaultlocale()[0] == "zh_CN" else 0
-strings = {
-    "photo":[
-        "photo",
-        "图片"
-    ],
-    "video":[
-        "video",
-        "视频"
-    ],
-    "audio":[
-        "audio",
-        "语音"
-    ],
-    "read_file_error":[
-        "read file '%s' with error",
-        "打开 %s 文件失败"
-    ],
-    "lack_param_error":[
-        "lack param '%s'",
-        "缺少参数 %s "
-    ],
-    "format_incorrect":[
-        "incorrect '%s' format",
-        "%s 文件格式不正确"
-    ],
-    "request_resource":[
-        "request resource",
-        "请求资源"
-    ],
-    "request_failed":[
-        "request failed",
-        "放弃请求"
-    ],
-    "retry":[
-        "retry %d time(s)",
-        "重试%d次"
-    ],
-    "start_download":[
-        "start download",
-        "开始下载"
-    ],
-    "download_failed":[
-        "download failed",
-        "放弃下载"
-    ],
-    "download_successful":[
-        "download successful(%d%%)",
-        "下载成功(%d%%)"
-    ],
-    "downloading":[
-        "downloading...(%d%%)",
-        "正在下载(%d%%)"
-    ],
-    "file_exist":[
-        "file already exists",
-        "文件已存在"
-    ],
-    "all_done":[
-        "all done",
-        "已完成"
-    ]
-}
-def get_string(key):
-    return strings[key][lang]
-
-
-def printf(string,flush=False):
-    if flush == True:
-        print "\r" + string.decode("utf-8").encode(sys.stdin.encoding or locale.getpreferredencoding(True)),
+def print_fit(string,pin=False):
+    if pin == True:
+        sys.stdout.write("\r\033[K")
+        sys.stdout.write(string)
         sys.stdout.flush()
     else:
-        print string.decode("utf-8").encode(sys.stdin.encoding or locale.getpreferredencoding(True))
+        sys.stdout.write(string+"\n")
 
-def quit(string=None):
-    if string != None: printf(string)
+def quit(string):
+    print_fit(string)
     sys.stdin.read()
     exit()
 
 def pin_info(i,amount,media_type):
     global pin
-    pin = str(i+1).zfill(len(str(amount))) + "/" + str(amount) + "  " + get_string(media_type) + "  " 
+    pin = "{}/{}  {}".format(str(i+1).zfill(len(str(amount))),amount,media_type)
 
-def show_status(process,data=None):
-    status = get_string(process)
-    if data != None: status = status%(data)
-    printf(format("","<40"),True)
-    printf(pin + status,True)
+def show_status(status):
+    print_fit("{}  {}".format(pin,status),True)
 
 def get_resource_url(talk_id):
     url = "https://client-k.hot.sonydna.com/article"
     data = {
-        "article":talk_id,
-        "username":username,
-        "token":token
+        "article": talk_id,
+        "username": username,
+        "token": token
     }
     headers = {
-        "User-Agent":user_agent,
-        "Content-Type":"application/json",
-        "Accept":"application/json",
-        "X-API-Version":api_version
+        "User-Agent": user_agent,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-API-Version": api_version
     }
-    request = urllib2.Request(url = url,headers = headers,data = json.dumps(data))
-    show_status("request_resource")
-    retry = 0
-    while True:
-        try:
-            response = urllib2.urlopen(request,timeout = 3)
-            jsondata = json.loads(response.read())
-            return jsondata["result"]["url"]
-        except Exception as e:
-            retry = retry + 1
-            if retry >= 10:
-                show_status("request_failed")
-                return None
-            show_status("retry",retry)
 
-def download_resource(url):
-    request = urllib2.Request(url = url,headers = {"User-Agent":user_agent})
-    show_status("start_download")
-    retry = 0
-    while True:
-        try:
-            response = urllib2.urlopen(request,timeout = 5)
-            return show_progress(response)
-        except Exception as e:
-            retry = retry + 1
-            if retry >= 10:
-                show_status("download_failed")
-                return None
-            show_status("retry",retry)
-                    
-def show_progress(response):
-    total = response.info().getheader("Content-Length").strip()
-    total = int(total)
-    byte = 0
-    data = ""
-    while True:
-        chunk = response.read(8192)
-        if not chunk:
-            break
-        byte += len(chunk)
-        data += chunk
-        percent = float(byte)/total*100
-        show_status("downloading",percent)
+    try:
+        show_status("request resource")
+        response = requests.request("POST",url,headers=headers,timeout=5,data=json.dumps(data),proxies=proxies)
+        json_data = json.loads(response.text)
+        resource_url = json_data["result"]["url"]
+        show_status("get resource url")
+        return resource_url
+    except KeyboardInterrupt:
+        exit()
+    except:
+        return None
+    
+
+def download_resource(url,file_path):
+    if os.path.exists(file_path):
+        show_status("file already exists")
+        return True
+    try:
+        show_status("start downloading")
+        response = requests.request("GET",url,headers={"User-Agent":user_agent},timeout=5,stream=True,proxies=proxies)
+    except KeyboardInterrupt:
+        exit()
+    except:
+        return False
+
+    size = int(response.headers["Content-Length"].strip())
+    save = 0
+
+    f = open(file_path,"wb")
+    try:
+        for chunk in response.iter_content(chunk_size=512):
+            if chunk:
+                f.write(chunk)
+                save += len(chunk)
+                percent = int(float(save)/size*100)
+                show_status("downloading...({}%)".format(percent))
+    except KeyboardInterrupt:
+        exit()
+    except:
+        f.close()
+        os.remove(file_path)
+        return False
+    else:
+        f.close()
+        show_status("download successful (100%)")
+        return True
         
-    show_status("download_successful",percent)
-    return data
-
-def update_download_queue_file(download_queue):
+def file_sync(queue):
     f = open(queue_path,"w")
-    f.write(json.dumps(download_queue,indent = 4))
+    f.write(json.dumps(queue,indent = 4,ensure_ascii = False))
     f.close()
 
-def check_queue_format(download_queue):
-    talk_id_check = re.compile(r"^\w{64}$")
-    error_info = get_string("format_incorrect")%"download.json"
-    for item in download_queue:
-        if "status" not in item or "media_type" not in item or "talk_id" not in item: quit(error_info)
-        if item["status"] not in [0,1]: quit(error_info)
-        if item["media_type"] not in ["photo","video","audio"]: quit(error_info)
-        if talk_id_check.match(item["talk_id"]) == None: quit(error_info)
 
+def check_format(download_queue):
+    talk_id_check = re.compile(r"^\w{64}$")
+    for item in download_queue:
+        if "status" not in item or "talk_id" not in item: 
+            return False
+        if not talk_id_check.match(item["talk_id"]): 
+            return False
+    return True
 
 try:
     f = open(params_path,"r")
@@ -182,59 +131,83 @@ try:
     params = json.loads(params)
     f.close()
 except:
-    quit(get_string("read_file_error")%"params.json")
+    quit("load params with something wrong")
 
-if "account_id" in params: username = params["account_id"]
-else: quit(get_string("lack_param_error")%"account_id")
+username = params["account_id"] if "account_id" in params else ""
+token = params["auth_token"] if "auth_token" in params else ""
+user_agent = params["user_agent"] if "user_agent" in params else ""
+api_version = params["api_version"] if "api_version" in params else ""
+proxies = {"https": params["proxy"], "http": params["proxy"]} if "proxy" in params else None
 
-if "auth_token" in params: token = params["auth_token"]
-else: quit(get_string("lack_param_error")%"auth_token")
+if not username or not token or not user_agent or not api_version:
+    quit("lack param")
 
-if "user_agent" in params: user_agent = params["user_agent"]
-else: quit(get_string("lack_param_error")%"user_agent")
-
-if "api_version" in params: api_version = params["api_version"]
-else: quit(get_string("lack_param_error")%"api_version")
-
-if "proxy" in params:
-    proxy_support = urllib2.ProxyHandler({"https" : params["proxy"], "http" : params["proxy"]})
-    opener = urllib2.build_opener(proxy_support)
-    urllib2.install_opener(opener)
-    
 try:
     f = open(queue_path,"r")
-    download_queue = f.read()
-    download_queue = json.loads(download_queue)
+    queue = f.read()
+    queue = json.loads(queue)
     f.close()
 except:
-    quit(get_string("read_file_error")%"download.json")
+    quit("load queue with something wrong")
 
-check_queue_format(download_queue)
+if not check_format(queue):
+    quit("incorrect queue format")
 
-if os.path.exists(resource_path) == False: os.mkdir(resource_path)
+if not os.path.exists(resource_path): os.mkdir(resource_path)
 
-amount = len(download_queue)
+amount = len(queue)
 
-for i in range(0,amount):
-    if download_queue[i]["status"] != 0: continue
+for index,item in enumerate(queue):
+    if item["status"] != 0:
+        continue
 
-    pin_info(i,amount,download_queue[i]["media_type"])
-    resource_url = get_resource_url(download_queue[i]["talk_id"])
-    if resource_url != None:
-        file_name = re.search(r'^\S+/(\S+?)\?\S+$',resource_url).group(1)
-        file_path = os.path.join(resource_path,file_name)
-        if os.path.exists(file_path) == 1:
-            show_status("file_exist")
-            download_queue[i]["status"] = 1
-        else:
-            data = download_resource(resource_url)
-            if data != None:
-                f = open(file_path,'wb')
-                f.write(data)
-                f.close()
-                download_queue[i]["status"] = 1
-            
-    update_download_queue_file(download_queue)
-    printf("")
+    media_type = item["media_type"]
+
+    # media_type = ["photo","audio","video"][item["content"]["media_type"] - 1]
+    # member_dir = item["content"]["author_name"]
+    # member_dir = member_dir.encode(system_encodeing) if is_python2 else member_dir
+    # type_dir = ["写真","音声","動画"][item["content"]["media_type"] - 1]
+    # type_dir = type_dir.encode(system_encodeing) if is_python2 else type_dir
+    # store_dir = os.path.join(resource_path,member_dir,type_dir)
+    # if not os.path.exists(store_dir): os.makedirs(store_dir)
+
+    pin_info(index,amount,media_type)
     
-quit(get_string("all_done"))
+    retry = 0
+    while True:
+        resource_url = get_resource_url(item["talk_id"])
+        if resource_url:
+            break
+        retry += 1
+        if retry > 5:
+            show_status("request failed")
+            break
+        show_status("retry {} time(s)".format(retry))
+    
+    if not resource_url:
+        print_fit("")
+        continue
+
+    file_name = re.search(r'^\S+/(\S+?)\?\S+$',resource_url).group(1)
+    file_path = os.path.join(resource_path,file_name)
+    
+    # file_extension = os.path.splitext(file_name)[-1]
+    # file_name = "{} {} {}{}".format(time.strftime('%Y%m%d %H%M%S',time.localtime(item["content"]["time_stamp"]/1000)),member_dir,type_dir,file_extension)
+    # file_path = os.path.join(store_dir,file_name)
+
+    retry = 0
+    while True:
+        result = download_resource(resource_url,file_path)
+        if result:
+            queue[index]["status"] = 1
+            break
+        retry += 1
+        if retry > 5:
+            show_status("download failed")
+            break
+        show_status("retry {} time(s)".format(retry))
+            
+    file_sync(queue)
+    print_fit("")
+    
+quit("all done")

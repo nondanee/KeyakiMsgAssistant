@@ -3,7 +3,13 @@ import sqlite3
 import re, json
 import os, sys
 
-if getattr(sys, 'frozen', False):
+try:
+    reload(sys)
+    sys.setdefaultencoding("utf8")
+except:
+    pass
+
+if getattr(sys, "frozen", False):
     work_dir = os.path.dirname(sys.executable)
 else:
     work_dir = os.path.dirname(__file__)
@@ -15,19 +21,19 @@ db_path = os.path.join(work_dir,"main.db")
 queue_path = os.path.join(work_dir,"download.json")
 
 connect = os.popen(adb + "devices").read()
-if re.search(r"device\s+$",connect) == None:
-    print "can't connect to device"
+if re.search(r"device\s+$",connect):
+    print("connect")
+else:
+    print("can't connect to device")
     os.system(adb + "kill-server")
     sys.stdin.read()
     exit()
-else:
-    print "connect"
 
 commands = [
-    'shell "su -c cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db"',
-    'pull /sdcard/keyakimsg.db {}'.format(db_path),
-    'shell "su -c rm /sdcard/keyakimsg.db "',
-    'kill-server'
+    "shell su -c cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db",
+    "pull /sdcard/keyakimsg.db {}".format(db_path),
+    "shell su -c rm /sdcard/keyakimsg.db",
+    "kill-server"
 ]
 
 for command in commands:
@@ -37,7 +43,7 @@ try:
     connect = sqlite3.connect(db_path)
     cursor = connect.cursor()
 except:
-    print "open database with something wrong"
+    print("open database with something wrong")
     sys.stdin.read()
     exit()
 
@@ -49,50 +55,51 @@ try:
 except:
     old = {}
 
-cursor.execute('''
-    SELECT 
-    TalkInfo.talkid,
-    TalkInfo.mediaType,
-    TalentInfo.talentName,
-    TalkInfo.sendDateMillis,
-    TalkInfo.text
-    FROM TalkInfo,TalentInfo 
-    WHERE TalkInfo.talentid = TalentInfo.talentid 
-    AND mediaType <> 0 
-    ORDER BY TalkInfo.sendDateMillis'''
-)
-
-db = cursor.fetchall()
+cursor.execute('''SELECT TalkInfo.talkid, TalkInfo.mediaType, TalentInfo.talentName, TalkInfo.sendDateMillis, TalkInfo.text FROM TalkInfo,TalentInfo  WHERE TalkInfo.talentid = TalentInfo.talentid  AND mediaType <> 0  ORDER BY TalkInfo.sendDateMillis''')
+data = cursor.fetchall()
 connect.close()
 
 new = []
-new_add = 0
+add = 0
 
-for i in range(0,len(db)):
-    talkId = db[i][0][2:]
-    mediaType = db[i][1]
+for index,line in enumerate(data):
+
+    if line[1] not in [1,2,3]:
+        continue
+
+    talk_id = line[0][2:]
 
     resource = {
-        "talk_id": talkId,
-        "media_type": ["photo","audio","video"][mediaType-1],
+        "talk_id": talk_id,
+        "media_type": ["photo","audio","video"][line[1]-1],
         "status": 0
     }
-    new_add = new_add + 1
+
+    # resource = {
+    #     "talk_id": talk_id,
+    #     "content": {
+    #         "media_type": line[1],
+    #         "author_name": line[2],
+    #         "time_stamp": line[3]
+    #     },
+    #     "status": 0
+    # }
+
+    add += 1
     
-    if len(old) >= i + 1:
-        if old[i]["talk_id"] == talkId:
-            resource["status"] = old[i]["status"]
-            new_add = new_add - 1
+    if len(old) > index:
+        if old[index]["talk_id"] == talk_id:
+            resource["status"] = old[index]["status"]
+            add -= 1
 
     new.append(resource)
 
 f = open(queue_path,"w")
-f.write(json.dumps(new,indent = 4))
+f.write(json.dumps(new,indent = 4,ensure_ascii = False))
 f.close()
 
-print "total {}".format(len(new))
-print "new add {}".format(new_add)
-print "done"
+print("total {}".format(len(new)))
+print("new add {}".format(add))
+print("done")
 sys.stdin.read()
-exit()
 
