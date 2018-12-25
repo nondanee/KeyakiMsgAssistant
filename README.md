@@ -1,16 +1,14 @@
 <img src="https://raw.githubusercontent.com/nondanee/KeyakiMsgAssistant-Xposed/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="logo" width="144" height="144" align="right" />
 
-# KeyakiMsgAssistant
-CLI tool for extracting resources from "欅坂46メッセー" app  
-Compatible with both Python 2 and Python 3  
-Packaged executable files with Out-of-Box experience can be found in release tag
+# KeyakiMsgAssistant ![shield](https://img.shields.io/badge/python-3.4%2B-blue.svg)
+CLI tool for extracting resources from "欅坂46メッセー" app
 
 ## Requirement
 - [x] Rooted
-- [ ] ADB tool
-- [ ] Python environment
+- [x] ADB tool
+- [x] Python environment
 
-## Principle
+## Implementation
 - Pull profile files from device
 - Decrypt data to get access token
 - Forge requests for resource urls 
@@ -41,8 +39,10 @@ Run ```python get_dl_queue.py``` in terminal
 
 <img src="/screenshots/queue.jpg" alt="get_dl_queue" align="center" />
 
-Pull sqlite3 file ```main.db``` from device to working directory  
+Pull sqlite3 file ```main.db``` from device to working directory
+
 Generate ```download.json``` like
+
 ```
 [
     ......

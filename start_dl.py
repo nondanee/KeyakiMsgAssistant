@@ -3,211 +3,182 @@ import time, re, json
 import os, sys, locale, platform
 import requests
 
-try:
-    reload(sys)
-    sys.setdefaultencoding("utf8")
-except:
-    pass
-
-if platform.system() == "Windows":
-    if platform.version() >= "10.0.14393":
-        os.system("")
+if platform.system() == 'Windows':
+    if platform.version() >= '10.0.14393':
+        os.system('')
     else:
         import colorama
         colorama.init()
 
-if getattr(sys, "frozen", False):
-    work_dir = os.path.dirname(sys.executable)
-else:
-    work_dir = os.path.dirname(__file__)
+pinned = ''
 
-# is_python2 = sys.version[0] == "2"
-# system_encodeing = sys.stdin.encoding or locale.getpreferredencoding(True)
-
-resource_path = os.path.join(work_dir,"resource")
-queue_path = os.path.join(work_dir,"download.json")
-params_path = os.path.join(work_dir,"params.json")
-pin = ""
-
-def print_fit(string,pin=False):
-    if pin == True:
-        sys.stdout.write("\r\033[K")
+def log(string, wrap = True):
+    if wrap == False:
+        sys.stdout.write('\r\033[K')
         sys.stdout.write(string)
         sys.stdout.flush()
     else:
-        sys.stdout.write(string+"\n")
+        sys.stdout.write(string + '\n')
 
 def quit(string):
-    print_fit(string)
+    log(string)
     sys.stdin.read()
-    exit()
-
-def pin_info(i,amount,media_type):
-    global pin
-    pin = "{}/{}  {}".format(str(i+1).zfill(len(str(amount))),amount,media_type)
+    exit()    
 
 def show_status(status):
-    print_fit("{}  {}".format(pin,status),True)
+    log('{}  {}'.format(pinned, status), False)
 
-def get_resource_url(talk_id):
-    url = "https://client-k.hot.sonydna.com/article"
+def query_resource(talk_id):
+    url = 'https://client-k.hot.sonydna.com/article'
     data = {
-        "article": talk_id,
-        "username": username,
-        "token": token
+        'article': talk_id,
+        'username': params['account_id'],
+        'token': params['auth_token']
     }
     headers = {
-        "User-Agent": user_agent,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "X-API-Version": api_version
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': params['user_agent'],
+        'X-API-Version': params['api_version']
     }
 
     try:
-        show_status("request resource")
-        response = requests.request("POST",url,headers=headers,timeout=5,data=json.dumps(data),proxies=proxies)
+        show_status('request resource')
+        response = requests.request(
+            'POST', url, headers = headers, data = json.dumps(data),
+            timeout = 5, proxies = proxies
+        )
         json_data = json.loads(response.text)
-        resource_url = json_data["result"]["url"]
-        show_status("get resource url")
+        resource_url = json_data['result']['url']
+        show_status('get resource url')
         return resource_url
     except KeyboardInterrupt:
         exit()
     except:
         return None
     
-
-def download_resource(url,file_path):
-    if os.path.exists(file_path):
-        show_status("file already exists")
+def download_file(url, path):
+    if os.path.exists(path):
+        show_status('file already exists')
         return True
     try:
-        show_status("start downloading")
-        response = requests.request("GET",url,headers={"User-Agent":user_agent},timeout=5,stream=True,proxies=proxies)
+        show_status('start downloading')
+        response = requests.request(
+            'GET', url, headers = {'User-Agent': params['user_agent']}, 
+            timeout = 5, stream = True, proxies = proxies
+        )
     except KeyboardInterrupt:
         exit()
     except:
         return False
 
-    size = int(response.headers["Content-Length"].strip())
+    size = int(response.headers['Content-Length'].strip())
     save = 0
 
-    f = open(file_path,"wb")
+    file = open(path, 'wb')
     try:
-        for chunk in response.iter_content(chunk_size=512):
+        for chunk in response.iter_content(chunk_size = 512):
             if chunk:
-                f.write(chunk)
+                file.write(chunk)
                 save += len(chunk)
-                percent = int(float(save)/size*100)
-                show_status("downloading...({}%)".format(percent))
+                percent = int(float(save) / size * 100)
+                show_status('downloading...({}%)'.format(percent))
     except KeyboardInterrupt:
+        file.close()
+        if os.path.exists(path): os.remove(path)
         exit()
     except:
-        f.close()
-        os.remove(file_path)
+        file.close()
+        if os.path.exists(path): os.remove(path)
         return False
     else:
-        f.close()
-        show_status("download successful (100%)")
+        file.close()
         return True
         
-def file_sync(queue):
-    f = open(queue_path,"w")
-    f.write(json.dumps(queue,indent = 4,ensure_ascii = False))
-    f.close()
+def file_sync(path, data):
+    file = open(path, 'w')
+    file.write(json.dumps(data, indent = 4, ensure_ascii = False))
+    file.close()
 
-
-def check_format(download_queue):
-    talk_id_check = re.compile(r"^\w{64}$")
-    for item in download_queue:
-        if "status" not in item or "talk_id" not in item: 
+def format_check(queue):
+    talk_id_check = re.compile(r'^\w{64}$')
+    for item in queue:
+        if 'status' not in item or 'talk_id' not in item:
             return False
-        if not talk_id_check.match(item["talk_id"]): 
+        if not talk_id_check.match(item['talk_id']):
             return False
     return True
 
 try:
-    f = open(params_path,"r")
-    params = f.read()
-    params = json.loads(params)
-    f.close()
+    with open('./params.json', 'r') as params_file:
+        params = json.loads(params_file.read())
 except:
-    quit("load params with something wrong")
+    quit('load params with something wrong')
 
-username = params["account_id"] if "account_id" in params else ""
-token = params["auth_token"] if "auth_token" in params else ""
-user_agent = params["user_agent"] if "user_agent" in params else ""
-api_version = params["api_version"] if "api_version" in params else ""
-proxies = {"https": params["proxy"], "http": params["proxy"]} if "proxy" in params else None
+for key in ['account_id', 'auth_token', 'user_agent', 'api_version']:
+    if key not in params:
+        quit('lack param')
 
-if not username or not token or not user_agent or not api_version:
-    quit("lack param")
+proxies = {'https': "params['proxy']", 'http': params['proxy']} if 'proxy' in params else None
 
 try:
-    f = open(queue_path,"r")
-    queue = f.read()
-    queue = json.loads(queue)
-    f.close()
+    with open('./download.json', 'r') as queue_file:
+        queue = json.loads(queue_file.read())
 except:
-    quit("load queue with something wrong")
+    quit('load queue with something wrong')
 
-if not check_format(queue):
-    quit("incorrect queue format")
+if not format_check(queue):
+    quit('incorrect queue format')
 
-if not os.path.exists(resource_path): os.mkdir(resource_path)
+if not os.path.exists('./resource'):
+    os.mkdir('./resource')
 
 amount = len(queue)
 
-for index,item in enumerate(queue):
-    if item["status"] != 0:
-        continue
+for index, item in enumerate(queue):
+    if item['status'] != 0: continue
 
-    media_type = item["media_type"]
+    media_type = item['media_type']
 
-    # media_type = ["photo","audio","video"][item["content"]["media_type"] - 1]
-    # member_dir = item["content"]["author_name"]
+    # media_type = ['photo','audio','video'][item['content']['media_type'] - 1]
+    # member_dir = item['content']['author_name']
     # member_dir = member_dir.encode(system_encodeing) if is_python2 else member_dir
-    # type_dir = ["写真","音声","動画"][item["content"]["media_type"] - 1]
+    # type_dir = ['写真','音声','動画'][item['content']['media_type'] - 1]
     # type_dir = type_dir.encode(system_encodeing) if is_python2 else type_dir
     # store_dir = os.path.join(resource_path,member_dir,type_dir)
     # if not os.path.exists(store_dir): os.makedirs(store_dir)
 
-    pin_info(index,amount,media_type)
+    pinned = '{}/{}  {}'.format(str(index + 1).zfill(len(str(amount))), amount, media_type)
     
-    retry = 0
-    while True:
-        resource_url = get_resource_url(item["talk_id"])
-        if resource_url:
-            break
-        retry += 1
-        if retry > 5:
-            show_status("request failed")
-            break
-        show_status("retry {} time(s)".format(retry))
+    for retry in range(6):
+        if retry != 0: show_status('retry {} time(s)'.format(retry))
+        url = query_resource(item['talk_id'])
+        if url: break
     
-    if not resource_url:
-        print_fit("")
+    if not url:
+        show_status('query failed')
+        log('')
         continue
 
-    file_name = re.search(r'^\S+/(\S+?)\?\S+$',resource_url).group(1)
-    file_path = os.path.join(resource_path,file_name)
-    
+    name = re.search(r'^\S+/(\S+?)\?\S+$', url).group(1)
+    path = os.path.join('./resource', name)
+
     # file_extension = os.path.splitext(file_name)[-1]
-    # file_name = "{} {} {}{}".format(time.strftime('%Y%m%d %H%M%S',time.localtime(item["content"]["time_stamp"]/1000)),member_dir,type_dir,file_extension)
+    # file_name = '{} {} {}{}'.format(time.strftime('%Y%m%d %H%M%S',time.localtime(item['content']['time_stamp']/1000)),member_dir,type_dir,file_extension)
     # file_path = os.path.join(store_dir,file_name)
 
-    retry = 0
-    while True:
-        result = download_resource(resource_url,file_path)
-        if result:
-            queue[index]["status"] = 1
-            break
-        retry += 1
-        if retry > 5:
-            show_status("download failed")
-            break
-        show_status("retry {} time(s)".format(retry))
-            
-    file_sync(queue)
-    print_fit("")
+    for retry in range(6):
+        if retry != 0: show_status('retry {} time(s)'.format(retry))
+        success = download_file(url, path)
+        if success: break
+
+    if not success:
+        show_status('download failed')
+    else:
+        show_status('download successful')
+        queue[index]['status'] = 1
+        
+    log('')
+    file_sync('./download.json', queue)
     
-quit("all done")
+quit('all done')
