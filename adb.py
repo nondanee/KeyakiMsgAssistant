@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 import os, subprocess, re
 
-platform_tools = os.path.join(__file__, 'platform-tools') 
-platform_tools = platform_tools if os.path.exists(platform_tools) else ''
+portable_adb = './platform-tools' if os.path.exists('./platform-tools') else None
 
 def execute(command, wait = True):
     process = subprocess.Popen(
         'adb' + ' ' + command, 
         shell = True, 
         stdout = subprocess.PIPE,
-        cwd = platform_tools if platform_tools else None
+        cwd = portable_adb if portable_adb else None
     )
     if wait: process.wait()
     return process
