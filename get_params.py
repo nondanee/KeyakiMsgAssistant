@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import os, sys, platform, subprocess
-import xml.dom.minidom, base64, re, json
+import xml.dom.minidom, base64, re, json, os, sys
 import adb
 from Crypto.Cipher import AES
+
+WORKDIR = os.path.dirname(os.path.abspath(__file__))
+PARAMS_PATH = os.path.join(WORKDIR, 'params.json')
 
 def extract(string):
     document = xml.dom.minidom.parseString(string)
@@ -64,7 +66,7 @@ try:
     print('auth-token', auth_token)
     print('user-agent', user_agent)
 
-    with open('./params.json', 'w') as params_file:
+    with open(PARAMS_PATH, 'w') as params_file:
         params_file.write(
             json.dumps({
                 'account_id': account_id,

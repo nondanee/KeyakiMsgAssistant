@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-import time, re, json
-import os, sys, locale, platform
+import os, sys, platform, time, re, json
 import requests
+
+WORKDIR = os.path.dirname(os.path.abspath(__file__))
+QUEUE_PATH = os.path.join(WORKDIR, 'download.json')
+PARAMS_PATH = os.path.join(WORKDIR, 'params.json')
+RESOURCE_PATH = os.path.join(WORKDIR, 'resource')
 
 if platform.system() == 'Windows':
     if platform.version() >= '10.0.14393':
@@ -110,7 +114,7 @@ def format_check(queue):
     return True
 
 try:
-    with open('./params.json', 'r') as params_file:
+    with open(PARAMS_PATH, 'r') as params_file:
         params = json.loads(params_file.read())
 except:
     quit('load params with something wrong')
@@ -122,7 +126,7 @@ for key in ['account_id', 'auth_token', 'user_agent', 'api_version']:
 proxies = {'https': "params['proxy']", 'http': params['proxy']} if 'proxy' in params else None
 
 try:
-    with open('./download.json', 'r') as queue_file:
+    with open(QUEUE_PATH, 'r') as queue_file:
         queue = json.loads(queue_file.read())
 except:
     quit('load queue with something wrong')
@@ -130,8 +134,8 @@ except:
 if not format_check(queue):
     quit('incorrect queue format')
 
-if not os.path.exists('./resource'):
-    os.mkdir('./resource')
+if not os.path.exists(RESOURCE_PATH):
+    os.mkdir(RESOURCE_PATH)
 
 amount = len(queue)
 
@@ -161,7 +165,7 @@ for index, item in enumerate(queue):
         continue
 
     name = re.search(r'^\S+/(\S+?)\?\S+$', url).group(1)
-    path = os.path.join('./resource', name)
+    path = os.path.join(RESOURCE_PATH, name)
 
     # file_extension = os.path.splitext(file_name)[-1]
     # file_name = '{} {} {}{}'.format(time.strftime('%Y%m%d %H%M%S',time.localtime(item['content']['time_stamp']/1000)),member_dir,type_dir,file_extension)
@@ -179,6 +183,6 @@ for index, item in enumerate(queue):
         queue[index]['status'] = 1
         
     log('')
-    file_sync('./download.json', queue)
+    file_sync(QUEUE_PATH, queue)
     
 quit('all done')

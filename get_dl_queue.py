@@ -2,6 +2,10 @@
 import os, sys, re, json, sqlite3
 import adb
 
+WORKDIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_PATH = os.path.join(WORKDIR, 'main.db')
+QUEUE_PATH = os.path.join(WORKDIR, 'download.json')
+
 if adb.connect():
     print('connect')
 else:
@@ -11,7 +15,7 @@ else:
 
 commands = [
     '''shell "su -c 'cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db'"''',
-    'pull /sdcard/keyakimsg.db ./main.db',
+    'pull /sdcard/keyakimsg.db ' + DATABASE_PATH,
     '''shell "su -c 'rm /sdcard/keyakimsg.db'"''',
     'kill-server'
 ]
@@ -20,7 +24,7 @@ for command in commands:
     adb.execute(command)
 
 try:
-    connect = sqlite3.connect('./main.db')
+    connect = sqlite3.connect(DATABASE_PATH)
     cursor = connect.cursor()
 except:
     print('open database with something wrong')
@@ -28,7 +32,7 @@ except:
     exit()
 
 try:
-    with open('./download.json', 'r') as queue_file:
+    with open(QUEUE_PATH, 'r') as queue_file:
         old = json.loads(queue_file.read())
 except:
     old = []
@@ -77,7 +81,7 @@ for index, line in enumerate(data):
 
     new.append(resource)
 
-with open('./download.json', 'w') as queue_file:
+with open(QUEUE_PATH, 'w') as queue_file:
     queue_file.write(json.dumps(new, indent = 4, ensure_ascii = False))
 
 print('total {}\nnew add {}\ndone'.format(len(new), add))

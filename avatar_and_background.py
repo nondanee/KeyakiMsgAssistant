@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-import re, json, sqlite3, requests
+import os, re, json, sqlite3, requests
 
-with open('./params.json', 'r') as f:
+WORKDIR = os.path.dirname(os.path.abspath(__file__))
+PARAMS_PATH = os.path.join(WORKDIR, 'params.json')
+DATABASE_PATH = os.path.join(WORKDIR, 'main.db')
+
+with open(PARAMS_PATH, 'r') as f:
     params = json.loads(f.read())
 
-connect = sqlite3.connect('./main.db')
+connect = sqlite3.connect(DATABASE_PATH)
 cursor = connect.cursor()
 queue = []
 
