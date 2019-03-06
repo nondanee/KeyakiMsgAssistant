@@ -16,7 +16,7 @@ def extract(string):
             auth_token_encrypted = base64.b64decode(node.childNodes[0].nodeValue)
     return account_id_encrypted, auth_token_encrypted
 
-def permutate(string):
+def shuffle(string):
     byte_array = bytearray(string)
     for i, _ in enumerate(byte_array):
         temp = byte_array[i]
@@ -52,7 +52,7 @@ adb.execute('kill-server')
 
 try:
     iv = file_00
-    key = permutate(file_01)
+    key = shuffle(file_01)
     account_id_encrypted, auth_token_encrypted = extract(hot_preference)
     account_id = decrypt(key, iv, account_id_encrypted)
     auth_token = decrypt(key, iv, auth_token_encrypted)
@@ -72,7 +72,7 @@ try:
                 'account_id': account_id,
                 'auth_token': auth_token,
                 'user_agent': user_agent,
-                'api_version': '1.4.0'
+                'api_version': '1.5.0'
             }, indent = 4)
         )
 except Exception as e:

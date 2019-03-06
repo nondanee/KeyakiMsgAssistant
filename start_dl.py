@@ -98,7 +98,7 @@ def download_file(url, path):
     else:
         file.close()
         return True
-        
+
 def file_sync(path, data):
     file = open(path, 'w')
     file.write(json.dumps(data, indent = 4, ensure_ascii = False))
@@ -153,12 +153,12 @@ for index, item in enumerate(queue):
     # if not os.path.exists(store_dir): os.makedirs(store_dir)
 
     pinned = '{}/{}  {}'.format(str(index + 1).zfill(len(str(amount))), amount, media_type)
-    
+
     for retry in range(6):
         if retry != 0: show_status('retry {} time(s)'.format(retry))
         url = query_resource(item['talk_id'])
         if url: break
-    
+
     if not url:
         show_status('query failed')
         log('')
@@ -181,8 +181,8 @@ for index, item in enumerate(queue):
     else:
         show_status('download successful')
         queue[index]['status'] = 1
-        
+
     log('')
     file_sync(QUEUE_PATH, queue)
-    
+
 quit('all done')
