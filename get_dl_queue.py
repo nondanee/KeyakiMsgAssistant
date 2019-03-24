@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys, re, json, sqlite3
+import os, json, sqlite3
 import adb
 
 WORKDIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,9 +19,6 @@ commands = [
     '''shell "su -c 'rm /sdcard/keyakimsg.db'"''',
     'kill-server'
 ]
-
-with open(DATABASE_PATH, 'w') as database_file:
-    database_file.close()
 
 for command in commands:
     adb.execute(command)
@@ -76,7 +73,7 @@ for index, line in enumerate(data):
     # }
 
     add += 1
-    
+
     if len(old) > index:
         if old[index]['talk_id'] == talk_id:
             resource['status'] = old[index]['status']

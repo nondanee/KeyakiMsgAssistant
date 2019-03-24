@@ -27,7 +27,7 @@ def log(string, wrap = True):
 def quit(string):
     log(string)
     os.system('pause')
-    exit()    
+    exit()
 
 def show_status(status):
     log('{}  {}'.format(pinned, status), False)
@@ -60,7 +60,7 @@ def query_resource(talk_id):
         exit()
     except:
         return None
-    
+
 def download_file(url, path):
     if os.path.exists(path):
         show_status('file already exists')
@@ -68,7 +68,7 @@ def download_file(url, path):
     try:
         show_status('start downloading')
         response = requests.request(
-            'GET', url, headers = {'User-Agent': params['user_agent']}, 
+            'GET', url, headers = {'User-Agent': params['user_agent']},
             timeout = 5, stream = True, proxies = proxies
         )
     except KeyboardInterrupt:

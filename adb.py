@@ -6,9 +6,10 @@ TOOLS_PATH = os.path.join(WORKDIR, 'platform-tools')
 
 def execute(command, wait = True):
     process = subprocess.Popen(
-        'adb' + ' ' + command, 
-        shell = True, 
+        'adb' + ' ' + command,
+        shell = True,
         stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
         cwd = TOOLS_PATH if os.path.exists(TOOLS_PATH) else None
     )
     if wait: process.wait()

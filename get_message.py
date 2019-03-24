@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys, re, time, sqlite3
+import os, time, sqlite3
 import adb
 
 WORKDIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,9 +20,6 @@ commands = [
     '''shell "su -c 'rm /sdcard/keyakimsg.db'"''',
     'kill-server'
 ]
-
-with open(DATABASE_PATH, 'w') as database_file:
-    database_file.close()
 
 for command in commands:
     adb.execute(command)
@@ -55,12 +52,12 @@ for line in data:
 
     if media_type != 0:
         text = ['[写真]', '[音声]', '[動画]'][media_type - 1] + text
-    
+
     message[talent_name] += '{} {}\n{}\n\n'.format(sent_time, talent_name, text)
 
 if not os.path.exists(RESOURCE_PATH): os.mkdir(RESOURCE_PATH)
 
-for name in message: 
+for name in message:
     archive = os.path.join(RESOURCE_PATH, name)
     if not os.path.exists(archive): os.mkdir(archive)
     with open(os.path.join(archive, FILE_NAME), 'w', encoding = 'utf-8') as f:

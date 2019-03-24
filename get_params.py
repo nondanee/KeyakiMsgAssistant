@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xml.dom.minidom, base64, re, json, os, sys
+import xml.dom.minidom, base64, json, os
 import adb
 from Crypto.Cipher import AES
 
