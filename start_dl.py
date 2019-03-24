@@ -128,7 +128,6 @@ proxies = {'https': params['proxy'], 'http': params['proxy']} if 'proxy' in para
 try:
     with open(QUEUE_PATH, 'r') as queue_file:
         queue = json.loads(queue_file.read())
-        queue.reverse()
 except:
     quit('load queue with something wrong')
 
