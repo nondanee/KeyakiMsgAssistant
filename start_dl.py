@@ -26,7 +26,7 @@ def log(string, wrap = True):
 
 def quit(string):
     log(string)
-    sys.stdin.read()
+    os.system('pause')
     exit()    
 
 def show_status(status):
@@ -123,11 +123,12 @@ for key in ['account_id', 'auth_token', 'user_agent', 'api_version']:
     if key not in params:
         quit('lack param')
 
-proxies = {'https': "params['proxy']", 'http': params['proxy']} if 'proxy' in params else None
+proxies = {'https': params['proxy'], 'http': params['proxy']} if 'proxy' in params else None
 
 try:
     with open(QUEUE_PATH, 'r') as queue_file:
         queue = json.loads(queue_file.read())
+        queue.reverse()
 except:
     quit('load queue with something wrong')
 
