@@ -21,6 +21,9 @@ commands = [
     'kill-server'
 ]
 
+with open(DATABASE_PATH, 'w') as database_file:
+    database_file.close()
+
 for command in commands:
     adb.execute(command)
 
@@ -33,7 +36,7 @@ except:
     exit()
 
 cursor.execute('select nickname from ProfileInfo limit 1')
-(nickname, ) = cursor.fetchone()
+nickname = cursor.fetchone()[0]
 cursor.execute('select talentName from TalentInfo')
 members = cursor.fetchall()
 cursor.execute('select TalkInfo.talkid,TalkInfo.mediaType,TalentInfo.talentName,TalkInfo.sendDateMillis,TalkInfo.text from TalkInfo,TalentInfo where TalkInfo.talentid = TalentInfo.talentid order by TalentInfo.talentName,TalkInfo.sendDateMillis desc')

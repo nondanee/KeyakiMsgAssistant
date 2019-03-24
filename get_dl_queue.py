@@ -20,6 +20,9 @@ commands = [
     'kill-server'
 ]
 
+with open(DATABASE_PATH, 'w') as database_file:
+    database_file.close()
+
 for command in commands:
     adb.execute(command)
 
