@@ -2,7 +2,7 @@
 
 # KeyakiMsgAssistant ![](https://img.shields.io/badge/python-3.4+-blue.svg?style=flat-square)
 
-CLI tool for extracting resources from "欅坂46メッセー" app
+CLI tool for extracting resources from "欅坂46/日向坂46 メッセージ" app
 
 ## Requirement
 
