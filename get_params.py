@@ -72,7 +72,7 @@ try:
                 'account_id': account_id,
                 'auth_token': auth_token,
                 'user_agent': user_agent,
-                'api_version': '1.6.0'
+                'api_version': '1.7.0'
             }, indent = 4)
         )
 except Exception as e:
