@@ -33,7 +33,6 @@ def decrypt(key, iv, cipher_text):
     cipher = AES.new(key, AES.MODE_CBC, iv)
     return cipher.decrypt(cipher_text).rstrip().decode()
 
-
 if adb.connect():
     print('connect')
 else:
@@ -41,8 +40,8 @@ else:
     os.system('pause')
     exit()
 
-file_00 = adb.read('''shell "su -c 'cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_00'"''', encode = False)
-file_01 = adb.read('''shell "su -c 'cat /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_01'"''', encode = False)
+file_00 = adb.read('''shell "su -c 'base64 /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_00'"''', encode = False)
+file_01 = adb.read('''shell "su -c 'base64 /data/data/jp.co.sonymusic.communication.keyakizaka/files/file_01'"''', encode = False)
 hot_preference = adb.read('''shell "su -c 'cat /data/data/jp.co.sonymusic.communication.keyakizaka/shared_prefs/hot_preference.xml'"''')
 
 product_model = adb.read('shell getprop ro.product.model').strip()
@@ -51,6 +50,8 @@ build_id = adb.read('shell getprop ro.build.id').strip()
 adb.execute('kill-server')
 
 try:
+    file_00 = base64.b64decode(file_00)
+    file_01 = base64.b64decode(file_01)
     iv = file_00
     key = shuffle(file_01)
     account_id_encrypted, auth_token_encrypted = extract(hot_preference)
