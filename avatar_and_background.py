@@ -7,10 +7,8 @@ connect = Database()
 cursor = connect.cursor()
 queue = []
 
-cursor.execute('select talentId, talentName from TalentInfo')
+cursor.execute('select groupId, talentName from TalentInfo')
 members = cursor.fetchall()
-cursor.execute('select min(talkId) from TalkInfo where mediaType = 2 group by talentId')
-telephones = cursor.fetchall()
 connect.close()
 
 for member in members:
