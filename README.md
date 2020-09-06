@@ -36,10 +36,10 @@ Program will generate `params.json` like
 ```json
 {
     "authorization": {
-        ...,
+        ...
     },
     "user_agent": ...,
-    "app_id": ...,
+    "app_id": ...
 }
 ```
 
@@ -69,7 +69,7 @@ and generate `download.json` like
         "media_type": "photo",
         "talk_id": "0000007527"
     },
-    ...,
+    ...
 ]
 ```
 
