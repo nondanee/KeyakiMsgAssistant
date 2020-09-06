@@ -29,16 +29,16 @@ pip install pycryptodome requests
 
 Run `python get_params.py` in terminal
 
-![](https://user-images.githubusercontent.com/26399680/54876702-3d56ea80-4e4f-11e9-908c-9634500882b6.png)
+![](https://user-images.githubusercontent.com/26399680/92327663-d69eae80-f08d-11ea-866d-da3da48e1aec.png)
 
 Program will generate `params.json` like
 
-```
-{
-    "auth_token": "????????-????-????-????-????????????",
-    "account_id": "????????-????-????-????-????????????",
-    "api_version": "?.?.?",
-    "user_agent": "Dalvik/2.1.0 (Linux; U; Android ?????; ????? Build/??????)",
+```json
+    "authorization": {
+        ...
+    },
+    "user_agent": ...,
+    "app_id": ...,
 }
 ```
 
@@ -60,15 +60,15 @@ Program will pull SQLite file `main.db` from device to working directory
 
 and generate `download.json` like
 
-```
+```json
 [
-    ......
+    ...,
     {
         "status": 0,
         "media_type": "photo",
-        "talk_id": "6444219f8da00a2af0f81ad747de8bba6d0dd2cb556fee9c22d21828316a6ee7"
+        "talk_id": "0000007527"
     },
-    ......
+    ...,
 ]
 ```
 
