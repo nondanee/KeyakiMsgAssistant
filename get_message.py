@@ -1,46 +1,21 @@
 # -*- coding: utf-8 -*-
-import os, time, sqlite3
-import adb
+import os, time
+from common import Database, RESOURCE_PATH
 
-WORKDIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_PATH = os.path.join(WORKDIR, 'main.db')
-RESOURCE_PATH = os.path.join(WORKDIR, 'resource')
 FILE_NAME = 'テキスト.txt'
 
-if adb.connect():
-    print('connect')
-else:
-    print("can't connect to device")
-    os.system('pause')
-    exit()
-
-commands = [
-    '''shell "su -c 'cp /data/data/jp.co.sonymusic.communication.keyakizaka/databases/main.db /sdcard/keyakimsg.db'"''',
-    'pull /sdcard/keyakimsg.db ' + DATABASE_PATH,
-    '''shell "su -c 'rm /sdcard/keyakimsg.db'"''',
-    'kill-server'
-]
-
-for command in commands:
-    adb.execute(command)
-
-try:
-    connect = sqlite3.connect(DATABASE_PATH)
-    cursor = connect.cursor()
-except:
-    print('open database with something wrong')
-    os.system('pause')
-    exit()
+connect = Database()
+cursor = connect.cursor()
 
 cursor.execute('select nickname from ProfileInfo limit 1')
 nickname = cursor.fetchone()[0]
 cursor.execute('select talentName from TalentInfo')
 members = cursor.fetchall()
-cursor.execute('select TalkInfo.talkid,TalkInfo.mediaType,TalentInfo.talentName,TalkInfo.sendDateMillis,TalkInfo.text from TalkInfo,TalentInfo where TalkInfo.talentid = TalentInfo.talentid order by TalentInfo.talentName,TalkInfo.sendDateMillis desc')
+cursor.execute('select TalkInfo.talkid, TalkInfo.mediaType, TalentInfo.talentName, TalkInfo.sendDateMillis, TalkInfo.text from TalkInfo, TalentInfo where TalkInfo.talentid = TalentInfo.talentid order by TalentInfo.talentName, TalkInfo.sendDateMillis desc')
 data = cursor.fetchall()
 connect.close()
 
-message = {member[0]: '' for member in members}
+message = { member[0]: '' for member in members }
 
 for line in data:
     talk_id, media_type, talent_name, send_date_millis, text = line

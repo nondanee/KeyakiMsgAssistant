@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys, platform, time, re, json
 import requests
-
-WORKDIR = os.path.dirname(os.path.abspath(__file__))
-QUEUE_PATH = os.path.join(WORKDIR, 'download.json')
-PARAMS_PATH = os.path.join(WORKDIR, 'params.json')
-RESOURCE_PATH = os.path.join(WORKDIR, 'resource')
+from common import Headers, Proxies, QUEUE_PATH, RESOURCE_PATH
 
 if platform.system() == 'Windows':
     if platform.version() >= '10.0.14393':
@@ -33,27 +29,15 @@ def show_status(status):
     log('{}  {}'.format(pinned, status), False)
 
 def query_resource(talk_id):
-    url = 'https://client-k.hot.sonydna.com/article'
-    data = {
-        'article': talk_id,
-        'username': params['account_id'],
-        'token': params['auth_token']
-    }
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': params['user_agent'],
-        'X-API-Version': params['api_version']
-    }
-
+    url = 'https://api.kh.glastonr.net/v2/messages/{}'.format(int(talk_id))
     try:
         show_status('request resource')
         response = requests.request(
-            'POST', url, headers = headers, data = json.dumps(data),
-            timeout = 5, proxies = proxies
+            'GET', url, headers = Headers(),
+            timeout = 5, proxies = Proxies()
         )
-        json_data = json.loads(response.text)
-        resource_url = json_data['result']['url']
+        body = json.loads(response.text)
+        resource_url = body['file']
         show_status('get resource url')
         return resource_url
     except KeyboardInterrupt:
@@ -68,8 +52,8 @@ def download_file(url, path):
     try:
         show_status('start downloading')
         response = requests.request(
-            'GET', url, headers = {'User-Agent': params['user_agent']},
-            timeout = 5, stream = True, proxies = proxies
+            'GET', url, headers = Headers(api = False),
+            timeout = 5, stream = True, proxies = Proxies()
         )
     except KeyboardInterrupt:
         exit()
@@ -105,25 +89,13 @@ def file_sync(path, data):
     file.close()
 
 def format_check(queue):
-    talk_id_check = re.compile(r'^\w{64}$')
+    talk_id_check = re.compile(r'^\d{10}$')
     for item in queue:
         if 'status' not in item or 'talk_id' not in item:
             return False
         if not talk_id_check.match(item['talk_id']):
             return False
     return True
-
-try:
-    with open(PARAMS_PATH, 'r') as params_file:
-        params = json.loads(params_file.read())
-except:
-    quit('load params with something wrong')
-
-for key in ['account_id', 'auth_token', 'user_agent', 'api_version']:
-    if key not in params:
-        quit('lack param')
-
-proxies = {'https': params['proxy'], 'http': params['proxy']} if 'proxy' in params else None
 
 try:
     with open(QUEUE_PATH, 'r') as queue_file:

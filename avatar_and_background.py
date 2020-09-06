@@ -1,23 +1,11 @@
 # -*- coding: utf-8 -*-
-import os, re, json, sqlite3, requests
+import os, re, json
+import requests
+from common import Database, Headers, Proxies, URL
 
-WORKDIR = os.path.dirname(os.path.abspath(__file__))
-PARAMS_PATH = os.path.join(WORKDIR, 'params.json')
-DATABASE_PATH = os.path.join(WORKDIR, 'main.db')
-
-with open(PARAMS_PATH, 'r') as f:
-    params = json.loads(f.read())
-
-connect = sqlite3.connect(DATABASE_PATH)
+connect = Database()
 cursor = connect.cursor()
 queue = []
-
-headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'User-Agent': params['user_agent'],
-    'X-API-Version': params['api_version']
-}
 
 cursor.execute('select talentId, talentName from TalentInfo')
 members = cursor.fetchall()
@@ -26,28 +14,18 @@ telephones = cursor.fetchall()
 connect.close()
 
 for member in members:
-    response = requests.request(
-        'POST', 'https://client-k.hot.sonydna.com/author/info',
-        headers = headers,
-        data = json.dumps({'author': member[0], 'username': params['account_id'], 'token': params['auth_token']})
-    )
-
-    body = json.loads(response.text)
-    queue.append(body['result']['thumbnail'])
-
-for telephone in telephones:
-    response = requests.request(
-        'POST', 'https://client-k.hot.sonydna.com/article',
-        headers = headers,
-        data = json.dumps({'article': telephone[0][2:], 'username': params['account_id'], 'token': params['auth_token']})
-    )
-    body = json.loads(response.text)
-    queue.append(body['result']['phoneimage'])
+    url = 'https://api.kh.glastonr.net/v2/groups/{}/members'.format(member[0])
+    response = requests.request('GET', url, headers = Headers(), proxies = Proxies())
+    data = json.loads(response.text)[0]
+    if 'thumbnail' in data: queue.append(data['thumbnail'])
+    if 'phone_image' in data: queue.append(data['phone_image'])
 
 for url in queue:
     print(url)
-    response = requests.request('GET', url, headers = headers)
-    with open(re.search(r'^\S+/(\S+?)\?\S+$', url).group(1), 'wb') as f:
+    name = os.path.basename(URL(url).path)
+    if os.path.exists(name): continue
+    response = requests.request('GET', url, headers = Headers(api = False), proxies = Proxies())
+    with open(name, 'wb') as f:
         for chunk in response.iter_content(chunk_size = 512):
             if chunk:
                 f.write(chunk)

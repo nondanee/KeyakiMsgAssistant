@@ -25,3 +25,6 @@ def connect():
     else:
         execute('kill-server')
         return False
+
+def kill():
+    execute('kill-server')
