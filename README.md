@@ -34,8 +34,9 @@ Run `python get_params.py` in terminal
 Program will generate `params.json` like
 
 ```json
+{
     "authorization": {
-        ...
+        ...,
     },
     "user_agent": ...,
     "app_id": ...,
@@ -44,7 +45,7 @@ Program will generate `params.json` like
 
 If you want to use proxy, add a line like
 
-```
+```json
     "proxy": "http://127.0.0.1:1080",
 ```
 
