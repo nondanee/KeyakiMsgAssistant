@@ -42,8 +42,10 @@ adb.kill()
 
 try:
     file_00 = base64.b64decode(file_00)
-    file_01 = base64.b64decode(file_01)
-    iv = file_00
+    try: file_01 = base64.b64decode(file_01)
+    except: pass
+    if not file_01: file_01 = file_00[16:]
+    iv = file_00[0:16]
     key = shuffle(file_01)
     authorization_encrypted = extract(hot_preference)
     authorization = json.loads(decrypt(key, iv, authorization_encrypted))
